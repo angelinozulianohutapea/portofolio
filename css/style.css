@@ -85,7 +85,18 @@ html.js .rv.on{opacity:1;transform:none}
 @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* ---------- Hero ---------- */
-.hero{min-height:100vh;min-height:100svh;padding:112px var(--pad) 28px;display:flex;flex-direction:column}
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:112px var(--pad) 28px;display:flex;flex-direction:column}
+/* bingkai viewfinder: empat sudut tipis di sekeliling hero */
+.hero::before{content:"";position:absolute;inset:84px calc(var(--pad) - 14px) 12px;pointer-events:none;opacity:.55;
+  background:
+    linear-gradient(var(--mu),var(--mu)) top left/20px 1px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) top left/1px 20px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) top right/20px 1px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) top right/1px 20px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) bottom left/20px 1px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) bottom left/1px 20px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) bottom right/20px 1px no-repeat,
+    linear-gradient(var(--mu),var(--mu)) bottom right/1px 20px no-repeat}
 .hero-top{display:flex;justify-content:space-between;animation:fade .9s var(--ease) both}
 .mega{margin-top:auto;font:400 clamp(60px,17.2vw,330px)/.84 var(--serif);letter-spacing:-.035em;will-change:transform}
 .mega .ln{display:block;overflow:hidden;padding:.06em 0 .1em}
@@ -113,6 +124,7 @@ html.js .rv.on{opacity:1;transform:none}
 .row .ttl{font:400 clamp(30px,4.8vw,76px)/1 var(--serif);letter-spacing:-.025em;transition:transform .5s var(--ease),color .3s}
 .row:hover .ttl,.row:focus-visible .ttl{transform:translateX(16px);color:var(--ac)}
 .row .yr{text-align:right}
+.row .sm{grid-column:2/4;color:var(--mu);font-size:15px;max-width:46em;margin-top:-8px}
 .row .tg{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---------- Page heads ---------- */
@@ -190,6 +202,38 @@ form .btn{margin-top:36px}
 .nf{padding:200px var(--pad) 120px}
 .nf h1{font:400 clamp(44px,9vw,140px)/.95 var(--serif);letter-spacing:-.03em;margin-bottom:28px}
 
+/* ---------- Marquee ---------- */
+.mq{display:flex;overflow:hidden;border-block:1px solid var(--rule);padding:clamp(18px,2.4vw,32px) 0;white-space:nowrap}
+.mq>div{flex:none;display:flex;animation:mq 60s linear infinite;font:400 clamp(44px,8vw,128px)/1 var(--serif);letter-spacing:-.03em;color:transparent;-webkit-text-stroke:1px var(--mu)}
+.mq span{padding-right:.45em}
+.mq span:nth-child(4n+3){font-style:italic}
+.mq .sep{color:var(--ac);-webkit-text-stroke:0;font-size:.5em;align-self:center}
+@keyframes mq{to{transform:translateX(-100%)}}
+
+/* ---------- Stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:24px;margin-top:clamp(40px,6vw,88px)}
+.stat{border-left:1px solid var(--rule);padding-left:18px}
+.stat b{display:block;font:400 clamp(60px,9vw,150px)/.9 var(--serif);letter-spacing:-.04em}
+.stat .mono{display:block;margin-top:10px}
+
+/* ---------- Skills (beranda) ---------- */
+.skg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:clamp(24px,3.4vw,48px)}
+.sk{border-top:1px solid var(--fg);padding-top:18px}
+.sk h3{font:400 clamp(30px,3.2vw,48px)/1.05 var(--serif);letter-spacing:-.02em;margin:10px 0 22px}
+.sk li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--rule);transition:padding .35s var(--ease),color .25s}
+.sk li:hover{padding-left:10px;color:var(--ac)}
+
+/* ---------- Process timeline ---------- */
+.proc{position:relative;max-width:920px;padding-left:clamp(40px,6vw,88px)}
+.proc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--rule)}
+.proc-fill{position:absolute;left:-1px;top:0;bottom:0;width:3px;background:var(--ac);transform-origin:top;transform:scaleY(0)}
+.pstep{position:relative;padding-bottom:clamp(36px,5vw,68px)}
+.pstep:last-child{padding-bottom:0}
+.pstep::before{content:"";position:absolute;left:calc(clamp(40px,6vw,88px) * -1 - 5px);top:18px;width:11px;height:11px;border-radius:50%;background:var(--bg);border:1px solid var(--rule);transition:background .4s,border-color .4s}
+.pstep.on::before{background:var(--ac);border-color:var(--ac)}
+.pstep h3{font:400 clamp(34px,5vw,72px)/1 var(--serif);letter-spacing:-.03em;margin-top:6px}
+.pstep p{color:var(--mu);margin-top:10px;max-width:34em}
+
 /* ---------- Footer ---------- */
 footer{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:28px var(--pad) calc(28px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--rule)}
 footer a:hover{color:var(--ac)}
@@ -204,7 +248,8 @@ footer a:hover{color:var(--ac)}
 }
 @media (max-width:760px){
   .row{grid-template-columns:2.6rem minmax(0,1fr);gap:6px 14px;padding:20px 0}
-  .row .tg,.row .yr{grid-column:2;text-align:left}
+  .row .tg,.row .yr,.row .sm{grid-column:2;text-align:left}
+  .row .sm{margin-top:0}
   .hero-foot{grid-template-columns:1fr}
   .facts{justify-content:flex-start}
   .mega .ln:nth-child(2){padding-left:9vw}

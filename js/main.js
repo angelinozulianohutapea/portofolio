@@ -52,6 +52,12 @@
   var tlFilter = function (e) { return e && (has(e.title) || has(e.org)); };
   var exp = list(C.experience).filter(tlFilter);
   var edu = list(C.education).filter(tlFilter);
+  var proc = list(C.process).filter(function (e) { return e && has(e.title); });
+  var skillCount = (function () {
+    var seen = {};
+    skills.forEach(function (g) { g.items.forEach(function (x) { seen[String(x).toLowerCase()] = 1; }); });
+    return Object.keys(seen).length;
+  })();
   var hasAbout = bio.length || skills.length || exp.length || edu.length || has(C.photo);
   var mailto = 'mailto:' + esc(C.email);
 
@@ -102,7 +108,8 @@
     var tags = p.stack.slice(0, 3).map(esc).join(' / ');
     return '<a class="row" href="project.html?id=' + encodeURIComponent(p.id) + '" data-label="' + esc(p.title) + '" data-img="' + esc(p.images[0] ? p.images[0].src : '') + '">' +
       '<span class="no mono">' + p.n + '</span><span class="ttl">' + esc(p.title) + '</span>' +
-      '<span class="tg mono">' + tags + '</span><span class="yr mono">' + esc(p.year || '') + '</span></a>';
+      '<span class="tg mono">' + tags + '</span><span class="yr mono">' + esc(p.year || '') + '</span>' +
+      (has(p.summary) ? '<span class="sm">' + esc(p.summary) + '</span>' : '') + '</a>';
   }
   function workSection(arr, idx, showAll) {
     return '<section class="sec" id="work"><div class="sec-h rv"><span class="mono">(' + idx + ')</span><h2>Selected work</h2>' +
@@ -125,20 +132,65 @@
     return '<section class="cta"><p class="mono rv">Contact</p><a class="mail mag" href="' + mailto + '">' + esc(C.email) + '</a>' + socialHTML() + '</section>';
   }
 
+  /* ---------- Section tambahan di beranda (semua dari content.js) ---------- */
+  function marqueeHTML() {
+    var words = [];
+    skills.forEach(function (g) { g.items.forEach(function (x) { if (words.indexOf(x) < 0) words.push(x); }); });
+    if (words.length < 3) proc.forEach(function (s) { words.push(s.title); });
+    words = words.slice(0, 14);
+    if (!words.length) return '';
+    var one = '<div>' + words.map(function (w) { return '<span>' + esc(w) + '</span><span class="sep">/</span>'; }).join('') + '</div>';
+    return '<div class="mq" aria-hidden="true">' + one + one + '</div>';
+  }
+  function statsHTML() {
+    var s = [];
+    if (P.length) s.push([P.length, 'Projects']);
+    if (skillCount) s.push([skillCount, 'Technologies']);
+    if (proc.length) s.push([proc.length, 'Stages in my workflow']);
+    if (!s.length) return '';
+    return '<div class="stats">' + s.map(function (x) {
+      return '<div class="stat rv"><b data-n="' + x[0] + '">' + x[0] + '</b><span class="mono">' + x[1] + '</span></div>';
+    }).join('') + '</div>';
+  }
+  function skillsSection(idx) {
+    if (!skills.length) return '';
+    return '<section class="sec"><div class="sec-h rv"><span class="mono">(' + idx + ')</span><h2>Skills</h2></div><div class="skg">' +
+      skills.map(function (g, i) {
+        return '<div class="sk rv" style="--d:' + i * 0.08 + 's"><span class="mono">' + String(i + 1).padStart(2, '0') + '</span>' +
+          (has(g.group) ? '<h3>' + esc(g.group) + '</h3>' : '') + '<ul>' +
+          g.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+      }).join('') + '</div></section>';
+  }
+  function processSection(idx) {
+    if (!proc.length) return '';
+    return '<section class="sec"><div class="sec-h rv"><span class="mono">(' + idx + ')</span><h2>How I build</h2></div>' +
+      '<div class="proc"><div class="proc-fill"></div>' + proc.map(function (s, i) {
+        return '<div class="pstep rv"><span class="mono">Step ' + String(i + 1).padStart(2, '0') + '</span><h3>' + esc(s.title) + '</h3>' +
+          (has(s.text) ? '<p>' + esc(s.text) + '</p>' : '') + '</div>';
+      }).join('') + '</div></section>';
+  }
+
   /* ---------- Halaman: Home ---------- */
   function home() {
     var w = String(C.name).trim().split(/\s+/), a = w.shift() || '', b = w.join(' ');
     var html =
-      '<section class="hero"><div class="hero-top"><span class="mono">' + esc(C.role) + '</span><span class="mono">Portfolio &mdash; ' + new Date().getFullYear() + '</span></div>' +
+      '<section class="hero"><div class="hero-top"><span class="mono">' + esc(C.role) + '</span>' +
+      (FINE ? '<span class="mono" id="xy" aria-hidden="true">x 0000 &middot; y 0000</span>' : '') +
+      '<span class="mono">Portfolio &mdash; ' + new Date().getFullYear() + '</span></div>' +
       '<h1 class="mega" aria-label="' + esc(C.name) + '"><span class="ln" aria-hidden="true"><span>' + esc(a) + '</span></span>' +
       (b ? '<span class="ln" aria-hidden="true"><span>' + esc(b) + '</span></span>' : '') + '</h1>' +
       '<div class="hero-foot">' + (has(C.tagline) ? '<p class="tagline">' + esc(C.tagline) + '</p>' : '<span></span>') + factsHTML() + '</div></section>';
-    var idx = 1;
-    if (P.length) html += workSection(P.slice(0, 6), '0' + idx++, P.length > 6);
-    if (bio.length) {
-      html += '<section class="sec"><div class="sec-h rv"><span class="mono">(0' + idx++ + ')</span><h2>About</h2>' +
-        (hasAbout ? '<a class="more mono ul" href="about.html">More</a>' : '') + '</div><p class="lead rv">' + esc(bio[0]) + '</p></section>';
+    var idx = 1, pad = function (n) { return '0' + n; };
+    html += marqueeHTML();
+    if (P.length) html += workSection(P.slice(0, 6), pad(idx++), P.length > 6);
+    var st = statsHTML();
+    if (bio.length || st) {
+      html += '<section class="sec"><div class="sec-h rv"><span class="mono">(' + pad(idx++) + ')</span><h2>About</h2>' +
+        (hasAbout ? '<a class="more mono ul" href="about.html">More</a>' : '') + '</div>' +
+        (bio.length ? '<p class="lead rv">' + esc(bio[0]) + '</p>' : '') + st + '</section>';
     }
+    html += skillsSection(pad(idx++));
+    html += processSection(pad(idx++));
     html += ctaSection();
     $('#main').innerHTML = html;
   }
@@ -264,7 +316,24 @@
     }, { threshold: 0.12 });
     $$('.rv').forEach(function (x) { io.observe(x); });
 
-    var prog = $('.prog'), mega = $('.mega'), tick = false;
+    // hitung naik pada angka statistik (nilainya dihitung dari content.js)
+    var co = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        co.unobserve(e.target);
+        var n = +e.target.getAttribute('data-n');
+        if (RM || !n) return;
+        var t0 = performance.now();
+        (function f() {
+          var k = Math.min(1, (performance.now() - t0) / 1100);
+          e.target.textContent = Math.round(n * (1 - Math.pow(1 - k, 3)));
+          if (k < 1) requestAnimationFrame(f);
+        })();
+      });
+    }, { threshold: 0.6 });
+    $$('[data-n]').forEach(function (x) { co.observe(x); });
+
+    var prog = $('.prog'), mega = $('.mega'), pr = $('.proc'), pf = $('.proc-fill'), tick = false;
     function onScroll() {
       if (tick) return; tick = true;
       requestAnimationFrame(function () {
@@ -273,6 +342,10 @@
         if (mega && !RM && y < innerHeight * 1.2) {
           mega.style.transform = 'translateY(' + (y * 0.16) + 'px)';
           mega.style.opacity = Math.max(0, 1 - y / (innerHeight * 0.95));
+        }
+        if (pr && pf) {
+          var r = pr.getBoundingClientRect();
+          pf.style.transform = 'scaleY(' + Math.max(0, Math.min(1, (innerHeight * 0.7 - r.top) / r.height)) + ')';
         }
         tick = false;
       });
@@ -288,7 +361,8 @@
   function detection() {
     if (!FINE) return;
     var xh = $('.xh'), xv = $('.xv'), box = $('.bbox'), lab = $('.bbox b'), pv = $('.preview'), pi = $('.preview img');
-    var SEL = 'h1,h2,h3,a,button,img,input,textarea,.lead,dl>div,.tl-row,.fgroup,figure,.bio p';
+    var SEL = 'h1,h2,h3,a,button,img,input,textarea,.lead,dl>div,.tl-row,.fgroup,figure,.bio p,.stat,.sk li,.pstep';
+    var xy = $('#xy');
     var on = true;
     try { on = localStorage.getItem('det') !== 'off'; } catch (e) {}
     root.classList.toggle('det-off', !on);
@@ -309,6 +383,7 @@
       xh.style.transform = 'translateY(' + my + 'px)';
       xv.style.transform = 'translateX(' + mx + 'px)';
       pv.style.transform = 'translate(' + (mx + 26) + 'px,' + (my - 40) + 'px)';
+      if (xy && mx >= 0) xy.textContent = 'x ' + String(Math.round(mx)).padStart(4, '0') + ' · y ' + String(Math.round(my)).padStart(4, '0');
       if (!on) return;
       var t = doc.elementFromPoint(mx, my), hit = t && t.closest ? t.closest(SEL) : null;
       if (!hit || hit.closest('.curtain')) { box.classList.remove('on'); return; }
