@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Ganti YOUR-DOMAIN dengan domain situsmu setelah deploy
+Sitemap: https://YOUR-DOMAIN/sitemap.xml
